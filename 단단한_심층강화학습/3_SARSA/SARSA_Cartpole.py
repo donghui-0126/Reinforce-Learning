@@ -21,9 +21,7 @@ class SARSA_Agent(nn.Module):
         super(SARSA_Agent, self).__init__()
         self.model = nn.Sequential(
             nn.Linear(num_states, 32),
-            nn.ReLU(),
             nn.Linear(32, 32),
-            nn.ReLU(),
             nn.Linear(32, num_actions)
         )
         self.gamma = 0.99
@@ -39,12 +37,12 @@ class SARSA_Agent(nn.Module):
         return self.model(x)
     
     def act(self, state):
+        # 입실론 그리디 정책
         if np.random.rand() < self.epsilon:
             action = np.random.choice(self.num_actions)
         else:
             q_values = self.model(state)
             action = torch.argmax(q_values).item()
-            
         return action
     
     def decrease_epsilon(self):
@@ -114,8 +112,6 @@ def main():
             state = next_state
             action = next_action
                         
-        solved = total_reward > 195.0
-
         rewards.append(ep_rewards)
         ep_loss = sum(losses) / len(losses)
         
