@@ -1,7 +1,18 @@
+import gym
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import random
+from collections import namedtuple, deque
+import torch.nn.functional as F
+
+
 from collections import namedtuple, deque
 import random
 import itertools
 
+episode_durations = []
 
 Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward', 'done'))
@@ -23,11 +34,6 @@ class ReplayMemory(object):
         # memory로부터 batch_size 길이 만큼의 list를 반환한다.
         return random.sample(self.memory, batch_size)
 
-
-    def slice2end(self, start):
-        return list(itertools.islice(self.memory, start, len(self)+1))
-
     def __len__(self):
         # memory의 길이를 반환한다.
         return len(self.memory)
-    

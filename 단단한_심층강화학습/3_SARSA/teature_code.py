@@ -58,15 +58,10 @@ class DeepSARSA:
         
         q_value = self.model((state))[action]
         next_q_value = self.model(next_state)[next_action].detach()
+        
         q_target = reward + (1 - int(done)) * self.gamma * next_q_value
         q_error = (q_target - q_value) ** 2
         
-        # print(q_target, q_value)
-        
-        # print("### q_target")
-        # print(q_target)
-        # print("### q value")
-        # print(q_value)
 
         
         q_error.backward()
@@ -106,6 +101,7 @@ for ep in range(500):
         
     rewards.append(ep_rewards)
     ep_loss = sum(losses) / len(losses)
+    
     if (ep+1) % 10 == 0:
         
         print("episode: {}, eps: {:.3f}, loss: {:.1f}, rewards: {}".format(ep+1, agent.epsilon, ep_loss, ep_rewards))

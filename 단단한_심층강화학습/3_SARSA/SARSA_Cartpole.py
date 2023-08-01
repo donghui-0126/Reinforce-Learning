@@ -12,8 +12,6 @@ torch.manual_seed(seed_value)
 seed_value = 42
 random.seed(seed_value)
 
-gamma = 0.9
-
 class SARSA_Agent(nn.Module):
     def __init__(self, num_states, num_actions):
         self.num_states = num_states
@@ -21,7 +19,9 @@ class SARSA_Agent(nn.Module):
         super(SARSA_Agent, self).__init__()
         self.model = nn.Sequential(
             nn.Linear(num_states, 32),
+            nn.ReLU(),
             nn.Linear(32, 32),
+            nn.ReLU(),
             nn.Linear(32, num_actions)
         )
         self.gamma = 0.99
@@ -37,12 +37,12 @@ class SARSA_Agent(nn.Module):
         return self.model(x)
     
     def act(self, state):
-        # 입실론 그리디 정책
         if np.random.rand() < self.epsilon:
             action = np.random.choice(self.num_actions)
         else:
             q_values = self.model(state)
             action = torch.argmax(q_values).item()
+        
         return action
     
     def decrease_epsilon(self):
@@ -55,25 +55,12 @@ def train(q_agent, state, action, reward, next_state, next_action, done):
 
     q_value = q_agent.model((torch.tensor(state)))[action]
     next_q_value = q_agent.model(torch.tensor(next_state))[next_action].detach()
-    # q_value = q_agent.forward(torch.tensor(state))
-    # next_q_value = q_agent.forward(torch.tensor(next_state))
+
     
-    # q_value = q_value.gather(-1, torch.tensor(action).unsqueeze(-1)).squeeze(-1)
-    # next_q_value = next_q_value.gather(-1, torch.tensor(next_action).unsqueeze(-1)).squeeze(-1)
-    
-    q_target = reward + (1 - int(done)) * gamma * next_q_value
+    q_target = reward + (1 - int(done)) * q_agent.gamma * next_q_value
     
 
     td_error = (q_target - q_value)**2
-    
-    # print(q_target, q_value)
-
-    # print("### q_target")
-    # print(q_target)
-    # print("### q value")
-    # print(q_value)
-    # print("### loss")
-    # print(loss)
     
     td_error.backward()                 # 역전파
     q_agent.optimizer.step()                # 경사 하강, 가중치를 업데이트
@@ -106,17 +93,15 @@ def main():
             loss = train(q_agent, state, action, reward, next_state, next_action, done)
             losses.append(loss)
 
-            # print(action, reward, next_state, next_action, done)
             
             ep_rewards += reward
             state = next_state
-            action = next_action
-                        
+            action = next_action  
+        
         rewards.append(ep_rewards)
         ep_loss = sum(losses) / len(losses)
         
         if (epi+1) % 10 == 0:
-            # print(losses)
             print("episode: {}, eps: {:.3f}, loss: {:.1f}, rewards: {}".format(epi+1, q_agent.epsilon, ep_loss, ep_rewards))
             
 if __name__ == '__main__':
