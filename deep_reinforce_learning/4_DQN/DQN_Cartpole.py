@@ -11,6 +11,11 @@ from replay_memory import ReplayMemory
 from collections import namedtuple, deque
 import random
 from itertools import count
+
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+
 from util.plot import plot_durations
 
 episode_durations = []
@@ -141,14 +146,13 @@ def main(batch_size=32):
     total_reward = 0
     step_done = 0
     for step in range(MAX_STEP):
-        state = env.reset()
+        state = env.reset()[0]
         state = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
         
         total_reward = 0
         for t in count():
             action, step_done = dqn_agent.act(state, step_done)
-
-            next_state, reward, done, truncated = env.step(action)
+            next_state, reward, done, truncated,_ = env.step(action)
             next_state, reward, done =  torch.tensor(next_state, dtype=torch.float32).unsqueeze(0),\
                                         torch.tensor(reward, dtype=torch.float32).unsqueeze(0),\
                                         torch.tensor(done, dtype=int).unsqueeze(0)
